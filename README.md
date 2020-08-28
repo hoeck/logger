@@ -27,11 +27,11 @@ npm install --save @pabra/logger
 yarn add @pabra/logger
 ```
 
-## Simple Usage
+## Getting Startet
 
-### just log everything
+### Just Log
 
-This tiny example works the same in browser and node.js.
+This works in both, browser and node.js environments.
 
 ```typescript
 // import
@@ -39,21 +39,56 @@ import getLogger from '@pabra/logger';
 
 // init and use root logger
 const rootLogger = getLogger('myProject');
+
 rootLogger.info("I'm using a simple logger now!");
-// prints to your console:
-// 2020-08-13T13:55:32.327Z [myProject] INFORMATIONAL - I'm using a simple logger now!
+```
+
+This prints the following to your console:
+
+```console
+2020-08-13T13:55:32.327Z [myProject] INFORMATIONAL - I'm using a simple logger now!
+```
+
+### Logging Data
+
+Pass any additional data after the log message
+
+```typescript
+moduleLogger.warning('something unexpected happened', { some: ['data', true] });
+```
+
+And it shows up as JSON in your log:
+
+```console
+2020-08-13T13:55:55.497Z [myProject.myModule] WARNING - something unexpected happened { some: [ 'data', true ] }
+```
+
+### Child Logger
+
+Call `getLogger` on your rootLogger to get a child logger.
+
+```typescript
+// import
+import getLogger from '@pabra/logger';
+
+// init and use root logger
+const rootLogger = getLogger('myProject');
 
 // init and use child logger in your modules/components/etc.
 const moduleLogger = rootLogger.getLogger('myModule');
+
 moduleLogger.warning('something unexpected happened', { some: ['data', true] });
-// prints to your console:
-// 2020-08-13T13:55:55.497Z [myProject.myModule] WARNING - something unexpected happened { some: [ 'data', true ] }
 ```
 
-Besides the timestamp and origin (by the name of the logger in square brackets)
-you have not much benefit over using `console.log` directly.
+Results in the following console output:
 
-### log only important stuff in production
+```console
+2020-08-13T13:55:55.497Z [myProject.myModule] WARNING - something unexpected happened { some: [ 'data', true ] }
+```
+
+### Selectively Logging for Dev / Prod
+
+Set up a custom handler to only show log messages starting at 'warning' level:
 
 ```typescript
 // import
@@ -63,14 +98,23 @@ import getLogger, { handlers } from '@pabra/logger';
 const logLevel = process.env.NODE_ENV === 'development' ? undefined : 'warning';
 const logHandler = handlers.getConsoleRawDataHandler(logLevel);
 const rootLogger = getLogger('myProject', logHandler);
-rootLogger.info("I'm using a simple logger now!");
-// prints nothing in "production" (or "test")
 
 // init and use child logger in your modules/components/etc.
 const moduleLogger = rootLogger.getLogger('myModule');
-moduleLogger.warning('something unexpected happened', { some: ['data', true] });
-// prints in "development" and "production" to your console:
-// 2020-08-13T13:55:55.497Z [myProject.myModule] WARNING - something unexpected happened { some: [ 'data', true ] }
+```
+
+Then, any log messages be below `warning` are ignored.
+
+```typescript
+rootLogger.info("I'm using a simple logger now!");
+moduleLogger.info("I'm using a simple logger now!");
+moduleLogger.warning('something unexpected happened', { some: ['data', true] })
+```
+
+Will show only the warning on your log:
+
+```console
+2020-08-13T13:55:55.497Z [myProject.myModule] WARNING - something unexpected happened { some: [ 'data', true ] }
 ```
 
 In this example we explicitly pass a handler to `getLogger`. Please read
@@ -82,6 +126,34 @@ also differ if you use it in node.js or browser (there is no global `process` in
 the browser - webpack
 [EnvironmentPlugin](https://webpack.js.org/plugins/environment-plugin/) might
 help).
+
+###
+
+### Custom Transports
+
+Set up a different transport to POST your log messages to a log aggregator or save them in a database:
+
+```typescript
+bla
+```
+
+### JSON Message Formatting
+
+Set up a custom formatter to log all messages as JSON.
+
+```typescript
+code
+```
+
+Now, any log message will be written as JSON to stdout or your chosen transport:
+
+```typescript
+moduleLogger.warning('something unexpected happened', { some: ['data', true] })
+```
+
+```console
+{"timestamp": "2020-08-13T13:55:55.497Z", "module": "myProject.myModule", "level": "WARNING", "message": "something unexpected happened", payload: "{ some: [ 'data', true ] }"}
+```
 
 ## Usage
 
